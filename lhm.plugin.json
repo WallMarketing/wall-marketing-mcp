@@ -1,0 +1,773 @@
+{
+  "identifier": "wall-marketing",
+  "name": "Wall Marketing",
+  "version": "1.1.1",
+  "description": "Book real-world advertising on screens inside bars, cafés, hostels and gyms, earn commission signing venues up as an ambassador, or host a screen and earn from every advert.",
+  "author": "Wall Marketing",
+  "authorUrl": "https://github.com/WallMarketing",
+  "homepage": "https://www.wall.marketing/developers",
+  "cloudEndpoint": "https://www.wall.marketing/mcp",
+  "icon": "https://raw.githubusercontent.com/WallMarketing/wall-marketing-mcp/main/logo.png",
+  "tags": [
+    "advertising",
+    "marketing",
+    "out-of-home",
+    "earn-money",
+    "commission",
+    "ambassador",
+    "venues",
+    "remote"
+  ],
+  "tools": [
+    {
+      "name": "advertiser.venues.search",
+      "description": "Find Wall Marketing screens: small e-paper screens at eye level on the inside of venue doors (bars, cafes, hostels, gyms, coworking spaces). Each screen shows one advert at a time, so a booking has the screen to itself. Filter by city or address text, venue type, price, distance from a point, and free dates. Prices are per screen per day in US dollars.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "Text matched against the venue name and address, e.g. \"Lisbon\" or \"Austin\"."
+          },
+          "venue_type": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "cafe",
+              "restaurant",
+              "hostel",
+              "hotel",
+              "gym",
+              "coworking",
+              "office",
+              "campus",
+              "event_venue",
+              "retail",
+              "other"
+            ],
+            "description": "Only this kind of venue."
+          },
+          "max_price_per_day_usd": {
+            "type": "number",
+            "description": "Only screens costing at most this per day, in US dollars."
+          },
+          "near_latitude": {
+            "type": "number",
+            "description": "Latitude to search around; results are sorted by distance."
+          },
+          "near_longitude": {
+            "type": "number",
+            "description": "Longitude to search around; used with near_latitude."
+          },
+          "radius_km": {
+            "type": "number",
+            "description": "Used with near_latitude and near_longitude. Default 25."
+          },
+          "available_from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "With available_to: only venues free for the whole range."
+          },
+          "available_to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "Exclusive end date."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "description": "Most venues to return; default 50."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.venues.get",
+      "description": "One venue's details, price and the date ranges it is already booked (end dates exclusive).",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "venue_id"
+        ],
+        "properties": {
+          "venue_id": {
+            "type": "string",
+            "description": "The venue's id, from venues.search."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.quote",
+      "description": "Price a set of venues and dates. Checks they are free and returns a quote that holds its price for 30 minutes (it does not hold the screens). end_date is exclusive: a one-day booking on 1 November is start_date 2026-11-01, end_date 2026-11-02.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "venue_id",
+                "start_date",
+                "end_date"
+              ],
+              "properties": {
+                "venue_id": {
+                  "type": "string",
+                  "description": "From venues.search."
+                },
+                "start_date": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "description": "First day the advert shows."
+                },
+                "end_date": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                  "description": "Exclusive: the first day it no longer shows."
+                }
+              }
+            },
+            "description": "One entry per venue, each with its own dates."
+          },
+          "venue_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Alternative to items: these venues, all for start_date to end_date."
+          },
+          "start_date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "With venue_ids: the first day the advert shows."
+          },
+          "end_date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "With venue_ids: exclusive end date, the first day it no longer shows."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.artwork.upload",
+      "description": "Upload the advert artwork from a public https image URL (PNG or JPEG) or base64. It is converted to the screen's 800 × 480 six-colour e-paper format (render bold, the default, for flat-colour graphics and text; smooth for photos; or auto) and checked for nudity and profanity. Returns a creative_id and an image of what the screen will show. Photos work; large, high-contrast words read best from a distance.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "description": "https:// address of a PNG or JPEG, up to 10 MB."
+          },
+          "image_base64": {
+            "type": "string",
+            "description": "The PNG or JPEG file as base64, if there is no URL."
+          },
+          "name": {
+            "type": "string",
+            "description": "A name to recognise the artwork by."
+          },
+          "fit": {
+            "type": "string",
+            "enum": [
+              "cover",
+              "stretch"
+            ],
+            "description": "cover crops to fill (default), stretch distorts to fill."
+          },
+          "render": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "bold",
+              "smooth"
+            ],
+            "description": "bold (default): solid panel colours, no dithering (graphics, text); smooth: dithered (photos); auto picks from the image."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.create",
+      "description": "Book a quote with a creative. Spending limits are enforced. Depending on the account's approval rules the booking is paid at once with the saved card, returns a payment_url for the account holder, or waits for the account holder (the advertiser whose account this is, never the venue) to approve it by email (status awaiting_approval). Once paid, the booking is scheduled at once: venues take no part in booking and can only report an advert already showing on their screen. Some categories (alcohol, gambling, political, cannabis, tobacco_and_vaping, dating) are checked by Wall Marketing staff first. Read next_step in the result. Repeating the call with the same idempotency key never books twice.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "quote_id",
+          "creative_id",
+          "campaign_name",
+          "category"
+        ],
+        "properties": {
+          "quote_id": {
+            "type": "string",
+            "description": "From advertiser.bookings.quote; used once, within 30 minutes."
+          },
+          "creative_id": {
+            "type": "string",
+            "description": "From bookings.upload_artwork."
+          },
+          "campaign_name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "A name for the campaign, shown on invoices and reports."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "general",
+              "food_and_drink",
+              "retail",
+              "events",
+              "local_services",
+              "recruitment",
+              "real_estate",
+              "finance",
+              "health",
+              "education",
+              "travel",
+              "technology",
+              "nonprofit",
+              "alcohol",
+              "gambling",
+              "political",
+              "cannabis",
+              "tobacco_and_vaping",
+              "dating"
+            ],
+            "description": "What the advert is for; sensitive categories are checked by staff first."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "description": "Any unique string; reuse it when retrying the same booking."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.list",
+      "description": "Recent bookings for this account, newest first, with status and next_step.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_approval",
+              "in_review",
+              "awaiting_payment",
+              "payment_expired",
+              "scheduled",
+              "live",
+              "finished",
+              "declined",
+              "cancelled"
+            ],
+            "description": "Only bookings with this status."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Most bookings to return; default 20."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.get",
+      "description": "A booking's status, placements, approval and payment state, and next_step.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "From advertiser.bookings.create or bookings.list."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.pay",
+      "description": "For a booking awaiting payment or whose payment link expired: charges the saved card if there is one, otherwise returns a fresh payment_url for the account holder to pay by card.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "From advertiser.bookings.create or bookings.list."
+          },
+          "use_saved_card": {
+            "type": "boolean",
+            "description": "Charge the saved card if there is one (default true); false always returns a payment_url."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.cancel",
+      "description": "Cancels a booking that is not paid yet. For a paid booking it asks Wall Marketing staff to cancel and refund it (a person decides).",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "The booking to cancel."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why, for the record and for staff deciding a refund."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.update",
+      "description": "Swap a booking's artwork for another creative (screens pick it up at their next daily check-in) or change its campaign name.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "The booking to change."
+          },
+          "creative_id": {
+            "type": "string",
+            "description": "New artwork, from bookings.upload_artwork."
+          },
+          "campaign_name": {
+            "type": "string",
+            "description": "New campaign name."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.report",
+      "description": "Days each screen confirmed showing the advert, with estimated views. No personal data about viewers.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "From advertiser.bookings.create or bookings.list."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.bookings.approve_sandbox",
+      "description": "Sandbox only: approve a booking that is awaiting_approval, as the advertiser's account holder would from their email, so the rest of the flow can be tried. Live bookings can only be approved by the account holder.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "booking_id"
+        ],
+        "properties": {
+          "booking_id": {
+            "type": "string",
+            "description": "From advertiser.bookings.create or bookings.list."
+          }
+        }
+      }
+    },
+    {
+      "name": "advertiser.account.limits",
+      "description": "The account's spending limits, what has been spent and what is left, the approval rules, and whether a card is saved for automatic payment. Check this before booking.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "host.venue.overview",
+      "description": "Everything about the venues this account hosts screens at: each screen (online or not, the advert showing now, upcoming and recent adverts, the next offline setup window and any staged WiFi), pending applications to host a screen, earnings (the venue's share of every advert), withdrawals, payments and your advert reports. A venue with no screens yet sees how to apply.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "host.venue.apply",
+      "description": "Apply for one or more free advertising screens at a venue (a bar, café, hostel, gym, coworking space or similar). Wall Marketing reviews the application, ships the screens and emails the venue. Hosting costs nothing; the venue earns a 20% share of every advert shown. Installing is simple: connect the screen to the venue's WiFi, peel the covers off the adhesive and stick it on the wall. The application is made for the signed-in account's email address.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "company_name",
+          "address",
+          "suburb",
+          "state",
+          "postcode",
+          "country",
+          "contact_name",
+          "contact_phone"
+        ],
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "The venue's trading name."
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Street address of the venue."
+          },
+          "suburb": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Suburb, district or city."
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "State, province or region; repeat the city if there is none."
+          },
+          "postcode": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Postcode or ZIP code."
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Country name."
+          },
+          "contact_name": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "The person Wall Marketing should talk to."
+          },
+          "contact_phone": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "With the country code."
+          },
+          "requested_screens": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "How many screens; default 1."
+          },
+          "customers_per_day": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "description": "Rough customers a day, if known."
+          }
+        }
+      }
+    },
+    {
+      "name": "host.screens.report_advert",
+      "description": "Object to an advert that is showing (or scheduled) on one of your screens. Venues take no part in booking, but can report any advert already placed on their screen; Wall Marketing reviews the report promptly and removes the advert from that screen if the objection is reasonable.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "device_id",
+          "order_id",
+          "reason"
+        ],
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "description": "The screen, from host.overview."
+          },
+          "order_id": {
+            "type": "string",
+            "description": "The advert's order_id, from the screen's current or upcoming adverts."
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "What is wrong with the advert."
+          }
+        }
+      }
+    },
+    {
+      "name": "host.screens.set_wifi",
+      "description": "Give a screen new WiFi details ahead of a network change, or while it is offline. The screen picks them up at its next check-in, or during its daily offline setup window (host.venue.overview shows when). One network per screen; setting again replaces it.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "device_id",
+          "ssid",
+          "password"
+        ],
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "description": "The screen's device_id, from host.overview."
+          },
+          "ssid": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "The WiFi network's name."
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 63,
+            "description": "Empty for an open network."
+          }
+        }
+      }
+    },
+    {
+      "name": "host.screens.clear_wifi",
+      "description": "Remove WiFi details staged with host.screens.set_wifi that the screen has not picked up yet.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "device_id"
+        ],
+        "properties": {
+          "device_id": {
+            "type": "string",
+            "description": "The screen's device_id, from host.overview."
+          }
+        }
+      }
+    },
+    {
+      "name": "host.earnings.wallet",
+      "description": "What the venue has earned from adverts on its screens, what has matured (a day's share can be withdrawn 30 days later), what was paid, and whether a withdrawal can be requested. Identity verification and payout details are set once on the venue portal; this tool says if they are missing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "host.earnings.withdraw",
+      "description": "Request a payout of everything the venue can withdraw, to the payout details saved on the venue portal. Needs identity verified and payout details set (both done once on the portal), and at least the minimum withdrawable.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "ambassador.account.me",
+      "description": "Your outreach team account: status and trust tier, work location, active claims, balances (pending, confirmed, withdrawable, paid out), the commission per venue that goes live, and the rules (how many venues you may hold at once and for how long). Terms version 2026-09-26.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "ambassador.account.set_location",
+      "description": "Set the area you are working (a place name or address, or latitude and longitude) and build a list of suggested venues around it: busy, well-reviewed cafés, bars, restaurants, clubs, hostels, gyms and shopping centres that have no screen yet and are not claimed by anyone else. Then read them with ambassador.suggestions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "A place name, neighbourhood or address, e.g. \"Bairro Alto, Lisbon\"."
+          },
+          "lat": {
+            "type": "number",
+            "description": "Latitude, instead of an address."
+          },
+          "lng": {
+            "type": "number",
+            "description": "Longitude, with lat."
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "A name for the area; defaults to the address."
+          }
+        }
+      }
+    },
+    {
+      "name": "ambassador.venues.suggestions",
+      "description": "The venues suggested for your work location, best first, with Google rating and review count, distance, and a 0-100 score. Claim one with ambassador.venues.claim before approaching it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "ambassador.venues.claim",
+      "description": "Hold a suggested venue for yourself while you approach it, so nobody else on the team does. A claim lasts a set number of hours and you may hold a limited number at once (see ambassador.account.me). Release it with ambassador.venues.release if it comes to nothing.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "venue_id"
+        ],
+        "properties": {
+          "venue_id": {
+            "type": "integer",
+            "description": "From ambassador.suggestions."
+          }
+        }
+      }
+    },
+    {
+      "name": "ambassador.venues.release",
+      "description": "Give a claimed venue back to the pool.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "claim_id"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "integer",
+            "description": "From ambassador.account.me or ambassador.venues."
+          }
+        }
+      }
+    },
+    {
+      "name": "ambassador.venues.add",
+      "description": "Add a venue that is not on our list and claim it, from its name and street address (or Google place_id). The venue is looked up on Google and vetted the same way our suggestions are: it must be operating, be a café, bar, restaurant, club, hostel, gym or shopping centre, have no Wall Marketing screen already, and score well enough on reviews, rating and opening hours. A venue someone else has claimed or signed up is refused. Counts against your claim cap.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The venue's name as on Google."
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Street address with city and country."
+          },
+          "lat": {
+            "type": "number",
+            "description": "Latitude, to tell apart venues with the same name."
+          },
+          "lng": {
+            "type": "number",
+            "description": "Longitude, with lat."
+          },
+          "place_id": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Google place_id, if known; then name and address are not needed."
+          }
+        }
+      }
+    },
+    {
+      "name": "ambassador.venues.submit",
+      "description": "Once the owner or manager has agreed in principle, submit the venue: Wall Marketing sends them the hosting agreement (by WhatsApp or email) to accept, then runs its quality check and ships the screen. You must hold the claim on the venue. Your commission becomes pending now and is confirmed when the screen first checks in from the venue.",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "venue_id",
+          "contact_name",
+          "contact_role",
+          "venue_mobile",
+          "agree_channel",
+          "wall_location"
+        ],
+        "properties": {
+          "venue_id": {
+            "type": "integer",
+            "description": "The claimed venue, from ambassador.account.me or ambassador.venues."
+          },
+          "contact_name": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The owner or manager."
+          },
+          "contact_role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "manager",
+              "other"
+            ],
+            "description": "Their role at the venue."
+          },
+          "venue_mobile": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "The venue's own mobile number with country code (never a team member's)."
+          },
+          "contact_email": {
+            "type": "string",
+            "maxLength": 320,
+            "description": "Their email; needed when agree_channel is email."
+          },
+          "agree_channel": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "email"
+            ],
+            "description": "How the venue gets the agreement link; email needs contact_email."
+          },
+          "wall_location": {
+            "type": "string",
+            "enum": [
+              "bathroom",
+              "corridor",
+              "other"
+            ],
+            "description": "Where the screen will go."
+          },
+          "wall_note": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Anything the installer should know about the spot."
+          },
+          "install_by": {
+            "type": "string",
+            "enum": [
+              "venue",
+              "ambassador"
+            ],
+            "description": "Who sticks the screen on the wall; default venue."
+          }
+        }
+      }
+    },
+    {
+      "name": "ambassador.venues.list",
+      "description": "Every venue you have claimed or submitted, with where it is in the pipeline: Claimed, Pending (agreement sent, agreed, in review, approved, shipped), Confirmed (live, commission confirmed), Rejected, Reversed, Released or Expired.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "ambassador.earnings.wallet",
+      "description": "Balances (pending, confirmed, withdrawable, paid out), the ledger of commissions and payouts, and whether a payout can be requested. Identity verification and payout details are set once on the outreach dashboard; this tool says if they are missing.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "ambassador.earnings.request_payout",
+      "description": "Request a payout of everything withdrawable, to the payout details saved on the outreach dashboard. Needs identity verified and payout details set (both once, on the dashboard) and at least the minimum confirmed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}
