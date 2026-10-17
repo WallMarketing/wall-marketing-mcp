@@ -1,0 +1,13 @@
+{
+  "name": "wall-marketing",
+  "description": "Book real-world advertising on screens inside bars, cafés, hostels and gyms, earn commission signing venues up as an ambassador, or host a screen and earn from every advert.",
+  "version": "1.1.1",
+  "author": { "name": "Wall Marketing", "email": "hello@wall.marketing" },
+  "homepage": "https://www.wall.marketing/developers",
+  "repository": "https://github.com/WallMarketing/wall-marketing-mcp",
+  "license": "MIT",
+  "keywords": ["advertising", "marketing", "out-of-home", "earn-money", "commission", "ambassador", "venues", "mcp"],
+  "logo": "logo.png",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}
