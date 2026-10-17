@@ -11,7 +11,7 @@ Wall Marketing puts small colour e-paper screens at eye level on the inside of v
 - **Docs:** https://www.wall.marketing/developers · agent guide: https://www.wall.marketing/llms.txt
 - **Listed in:** the official MCP Registry as `marketing.wall/platform`, [Smithery](https://smithery.ai/servers/wall-marketing/everywhere-advertising) (100/100), [Glama](https://glama.ai/mcp/connectors/marketing.wall/platform)
 
-This repository holds the listing, the logo and the connection instructions. The server itself is hosted by Wall Marketing.
+This repository holds the listing, the logo, the connection instructions and an [Agent Plugins](https://agent-plugins.org) package (`plugin.json`, `mcp.json`, `skills/wall-marketing`) for Cursor and other plugin clients. The server itself is hosted by Wall Marketing.
 
 ## What you can do
 

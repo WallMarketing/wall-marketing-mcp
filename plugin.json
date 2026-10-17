@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "wall-marketing",
+  "version": "1.1.1",
+  "description": "Book real-world advertising on screens inside bars, cafés, hostels and gyms, earn commission signing venues up as an ambassador, or host a screen and earn from every advert.",
+  "author": { "name": "Wall Marketing", "email": "hello@wall.marketing", "url": "https://www.wall.marketing" },
+  "homepage": "https://www.wall.marketing/developers",
+  "repository": "https://github.com/WallMarketing/wall-marketing-mcp",
+  "license": "MIT",
+  "keywords": ["advertising", "marketing", "out-of-home", "earn-money", "commission", "ambassador", "venues", "mcp"]
+}
